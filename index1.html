@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiaBot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', Comic Sans MS;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+    
+/* Sidebar Styling (Reduced Width) */
+.sidebar {
+    width: 10%; /* Reduced width */
+    background-color: #1e1e2d;
+    color: #C9F5D9;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    align-items: center; /* Center content horizontally */
+}
+
+.sidebar-option:hover {
+    background-color: #003d5b; /* Slight darkening */
+    color: white;
+}
+
+/* Image Container */
+.sidebar-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 80px; /* Spacing between options */
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-option img {
+    width: 60px; /* Image size */
+    height: 60px;
+    margin-bottom: 10px;
+    border-radius: 10px; /* Optional rounded corners */
+    transition: transform 0.3s;
+}
+
+.sidebar-option:hover img {
+    transform: scale(1.1); /* Slight zoom effect */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow on hover */
+}
+
+.sidebar-option span {
+    font-size: 14px;
+    color: #C9F5D9;
+    text-align: center;
+}
+
+/* Ensure the sidebar is visually balanced */
+.sidebar h2 {
+    margin-bottom: 30px;
+    font-size: 18px;
+    text-align: center;
+    color: white;
+}
+
+    
+        #main_container {
+            position: fixed;
+            border-radius: 20px; /* Adjust the radius to your preference */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centers the container */
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 1000;
+            display: flex;
+            padding: 20px; /* Padding around the content */
+
+        }
+
+        /* Left Section: Chat History */
+        #chat_history {
+            width: 25%;
+            overflow-y: auto;
+            background: #f0f9ff;
+            padding: 10px;
+            background-color: #f0f9ff;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    
+        /* Customize the scrollbar */
+        #chat_history::-webkit-scrollbar {
+            width: 5px;
+        }
+    
+        #chat_history::-webkit-scrollbar-thumb {
+            background-color: #f0f9ff;
+            border-radius: 4px;
+        }
+    
+        #chat_history::-webkit-scrollbar-track {
+            background-color: #f0f9ff;
+        }
+    
+        #chat_history h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: black;
+        }
+    
+        .history_item {
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+    
+        .history_item:hover {
+            background: #C9F5D9;
+        }
+    
+        .history_item.active {
+            background: #007bff;
+            color: white;
+        }
+    
+        /* Right Section: Chat Window */
+        #chat_window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+    
+        .header {
+            background-color: #f0f9ff;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .header-logo {
+            width: 100px;
+            height: 90px;
+            margin-right: 15px;
+        }
+    
+        /* The container holding the chat log */
+        #chat_log {
+    flex: 1;
+    padding: 15px; /* Adjusted padding */
+    max-height: calc(100% - 60px); /* Space for the footer */
+    overflow-y: auto;
+    background-color: #f0f9ff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    z-index: 0;
+}
+        /* Chat messages above the background */
+        .user-message,
+        .bot-message {
+            border-radius: 15px; /* Rounded corners for messages */
+            padding: 10px;
+            font-size: 18px;
+            z-index: 2;
+            position: relative;
+            word-wrap: break-word;
+        }
+    
+        /* User message style */
+        .user-message {
+            background-color: #26C6DA;
+            color: black;
+            align-self: flex-end;
+            margin-left: auto;
+            margin-right: 10px;
+            text-align: right;
+            font-size: 20px;
+            max-width: 25%;
+            padding: 15px 25px;
+        }
+    
+        /* Bot message style */
+        .bot-message {
+            background-color: #009698;
+            color: #000;
+            align-self: flex-start;
+            margin-right: auto;
+            margin-left: 10px;
+            text-align: left;
+            max-width: 25%;
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 20px;
+        }
+    
+        /* Icon Styling */
+        .message-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    
+        .user-message .message-icon {
+            order: 1;
+        }
+    
+        .bot-message .message-icon {
+            order: 0;
+        }
+    
+        .user-message,
+        .bot-message {
+            padding-left: 45px;
+        }
+    
+        .user-message .message-icon,
+        .bot-message .message-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    
+        /* Scrollbar styling */
+        #chat_log::-webkit-scrollbar {
+            width: 7px;
+            height: 2px;
+        }
+    
+        #chat_log::-webkit-scrollbar-thumb {
+            background-color: #f0f9ff;
+            border-radius: 20px;
+        }
+    
+        /* Footer input and buttons */
+        .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    gap: 10px;
+    border-top: 2px solid #ddd; /* Optional border for separation */
+}
+    
+        #user_input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 25px;
+            border: 3px solid black;
+            outline: none;
+            font-size: 18px;
+            transition: box-shadow 0.3s;
+        }
+    
+        #user_input:focus {
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+    
+        #send_btn,
+        #voice_btn {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+    
+        #send_btn:hover,
+        #voice_btn:hover {
+            transform: scale(1.1);
+        }
+    
+        /* Menu Icon */
+        #menu {
+            position: absolute;
+            top: 50px;
+            left: 30px;
+            width: 50px;
+            height: 40px;
+            cursor: pointer;
+        }
+    
+        /* Dropdown Menu */
+        #upload_menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 200px;
+        }
+    
+        #upload_menu button {
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+    
+        #upload_menu button:hover {
+            background-color: #0056b3;
+        }
+    
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+    
+        .typing-indicator img {
+            width: 90px;
+            height: 70px;
+            margin-right: 10px;
+        }
+    
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --bot-message-bg: #40a8f5;
+            --user-message-bg: #ff6f61;
+            --bubble-text-color: #ffffff;
+        }
+    
+        /* Left Sidebar */
+        .left-sidebar {
+            width: 20%;
+            background-color: #f4f4f4;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+    
+        .left-sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+    
+        .sidebar-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: left;
+        }
+    
+        .sidebar-button:hover {
+            background-color: #0056b3;
+        }
+
+        .audio-player {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.waveform {
+    width: 100%;
+    height: 50px;
+    margin-top: 10px;
+}
+
+audio {
+    width: 100%;
+    margin-top: 10px;
+}
+    
+    </style>
+    
+</head>
+<body>
+    <div id="main_container">
+
+        <!-- Left Sidebar Section -->
+        <div class="sidebar">
+            <h2>Options</h2>
+        
+            <!-- Book Appointment -->
+            <div class="sidebar-option" id="book_appointment_button">
+                <img src="./images/img4.png" alt="Book Appointment">
+                <span>Book Appointment</span>
+            </div>
+          
+            <!-- Upload Prescription -->
+            <div class="sidebar-option" onclick="triggerFileUpload()">
+                <!-- Image acts as the trigger -->
+                <img src="./images/img_upload.png" alt="Upload Prescription">
+                <span>Upload Prescription</span>
+            
+                <!-- Hidden form -->
+                <form id="image_form" enctype="multipart/form-data">
+                    <input type="file" id="prescription_image" accept="image/*" style="display: none;">
+                    <button type="submit" class="floating-btn">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </form>
+            </div>
+            
+            <script>
+                function triggerFileUpload() {
+                    // Simulate a click on the hidden file input
+                    document.getElementById('prescription_image').click();
+                }
+            </script>
+            
+            
+            <!-- Settings -->
+            <div class="sidebar-option" onclick="openSettings()">
+                <img src="./images/settings_icon.png" alt="Settings">
+                <span>Settings</span>
+            </div>
+        </div>
+
+        <!-- Left Side: Chat History -->
+        <div id="chat_history">
+            <h2>Chat History</h2>
+            <div id="history_container">
+                <!-- Dynamic chat history will appear here -->
+            </div>
+        </div>
+
+        <!-- Right Side: Chat Window -->
+        <div id="chat_window">
+
+            <!-- Header Section -->
+            <div class="header">
+                <img src="./images/logo.gif" alt="DiaBot Logo" class="header-logo">
+                DiaBot
+            </div>
+
+            <!-- Chat Log Section -->
+            <div id="chat_log"></div>
+
+            <!-- Footer Section -->
+            <div class="footer">
+                <input type="text" id="user_input" placeholder="Type a message..." />
+                <img id="send_btn" src="static/images/send.png" alt="Send Button" />
+                <img id="voice_btn" src="static/images/voice.png" alt="Voice Button" />
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-firestore-compat.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Firebase Initialization
+            const firebaseConfig = {
+                apiKey: "AIzaSyCnScPWOM04Qdn8Sl0zI1D5-4NNy2-9UP8",
+                authDomain: "diabot-7f734.firebaseapp.com",
+                projectId: "diabot-7f734",
+                storageBucket: "diabot-7f734.firebasestorage.app",
+                messagingSenderId: "129817979603",
+                appId: "1:129817979603:web:73f3dfa8a05f8d16468226",
+                measurementId: "G-YCCPFXLF4W"
+            };
+            const app = firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+        
+            // DOM Elements
+            const sendBtn = document.getElementById('send_btn');
+            const voiceBtn = document.getElementById('voice_btn');
+            const userInput = document.getElementById('user_input');
+            const prescriptionImage = document.getElementById('prescription_image');
+            const chatLog = document.getElementById('chat_log');
+            const uploadButton = document.getElementById('upload_button');
+            const uploadMenu = document.getElementById('upload_menu');
+            const historyContainer = document.getElementById('history_container');
+            const bookAppointmentButton = document.getElementById('book_appointment_button');
+        
+            // Book Appointment Button
+            if (bookAppointmentButton) {
+    bookAppointmentButton.addEventListener('click', () => {
+        console.log("Book Appointment button clicked!");
+        window.location.href = 'appointments.html'; // Redirect to the static HTML file
+    });
+}
+        
+            // Send Message Event
+            sendBtn.addEventListener('click', sendMessage);
+        
+            // Enter Key Event
+            userInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        
+            // Voice Input Event
+            voiceBtn.addEventListener('click', handleVoiceInput);
+        
+            // Welcome Message on Load
+            let isFirstInteraction = true;
+        
+            window.onload = () => {
+                if (isFirstInteraction) {
+                    appendMessage('Welcome to Diabot 😊. How can I help you today?', 'bot');
+                    isFirstInteraction = false;
+                }
+            };
+        
+            // Voice Input Handler
+            function handleVoiceInput() {
+                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = 'en-US';
+        
+                recognition.onresult = (event) => {
+                    const speechToText = event.results[0][0].transcript;
+                    userInput.value = speechToText;
+                    appendMessage(speechToText, 'user');
+                    fetchResponse(speechToText);
+                };
+        
+                recognition.onerror = (event) => {
+                    console.error('Speech Recognition Error:', event.error);
+                };
+        
+                recognition.start();
+            }
+        
+            // Append Message
+            function appendMessage(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = sender === 'user' ? 'user-message' : 'bot-message';
+                messageDiv.innerText = message;
+        
+                chatLog.appendChild(messageDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+        
+            // Typing Indicator
+            function appendTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'bot-message typing-indicator';
+        
+                const typingImage = document.createElement('img');
+                typingImage.src = "static/assets/typing_indicator.gif";
+                typingImage.alt = "Typing...";
+        
+                typingDiv.appendChild(typingImage);
+                chatLog.appendChild(typingDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+        
+            function removeTypingIndicator() {
+                const typingIndicator = document.querySelector('.typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+        
+            // Send Message
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message) {
+                    appendMessage(message, 'user');
+                    userInput.value = '';
+                    fetchResponse(message);
+        
+                    const user = auth.currentUser;
+                    if (user) {
+                        saveChatMessage(user.uid, message, 'user');
+                    }
+                }
+            }
+        
+            // Fetch Bot Response
+            function fetchResponse(message) {
+                appendTypingIndicator();
+        
+                setTimeout(() => {
+                    fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_input: message }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            removeTypingIndicator();
+                            appendMessage(data.response || 'Sorry, I couldn\'t understand that.', 'bot');
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            removeTypingIndicator();
+                            appendMessage('Error communicating with the server.', 'bot');
+                        });
+                }, 2000);
+            }
+        
+            // Save Chat Message in Firestore
+            function saveChatMessage(userId, message, sender) {
+                if (userId) {
+                    const chatRef = db.collection('chatHistory').doc(userId);
+        
+                    chatRef.set({
+                        messages: firebase.firestore.FieldValue.arrayUnion({
+                            message: message,
+                            sender: sender,
+                            timestamp: new Date().toISOString(),
+                        })
+                    }, { merge: true })
+                        .then(() => console.log('Message successfully saved to Firestore.'))
+                        .catch(error => console.error('Error saving message to Firestore:', error));
+                }
+            }
+        
+            // Load Chat History
+            function loadChatHistory(userId, limit = 10) {
+                const chatRef = db.collection('chatHistory').doc(userId);
+        
+                chatRef.get()
+                    .then(doc => {
+                        if (doc.exists) {
+                            const messages = doc.data().messages || [];
+                            messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                            historyContainer.innerHTML = '';
+                            displayMessagesWithLazyLoading(messages, limit);
+                        } else {
+                            historyContainer.innerHTML = '<p>No chat history found.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching chat history:', error);
+                        historyContainer.innerHTML = '<p>Error loading chat history. Please try again later.</p>';
+                    });
+            }
+        
+            // Display Chat History Messages with Lazy Loading
+            function displayMessagesWithLazyLoading(messages, limit) {
+                let startIndex = 0;
+        
+                function loadNextBatch() {
+                    const endIndex = Math.min(startIndex + limit, messages.length);
+        
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const { message, sender, timestamp } = messages[i];
+                        appendHistoryMessage(message, sender, timestamp);
+                    }
+        
+                    startIndex = endIndex;
+        
+                    if (startIndex >= messages.length) {
+                        historyContainer.removeEventListener('scroll', loadNextBatch);
+                    }
+                }
+        
+                loadNextBatch();
+                historyContainer.addEventListener('scroll', () => {
+                    const { scrollTop, scrollHeight, clientHeight } = historyContainer;
+                    if (scrollTop === 0) {
+                        loadNextBatch();
+                    }
+                });
+            }
+        
+            function appendHistoryMessage(message, sender, timestamp) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = sender === 'user' ? 'user-message' : 'bot-message';
+                messageDiv.innerText = `${message} (${new Date(timestamp).toLocaleString()})`;
+                historyContainer.appendChild(messageDiv);
+            }
+        });
+
+
+        const imageForm = document.getElementById('image_form');
+        const prescriptionImage = document.getElementById('prescription_image');
+
+        imageForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const file = prescriptionImage.files[0];
+            if (file) {
+                uploadImage(file);
+            }
+        });
+
+        function uploadImage(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('/upload_image', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                appendImageMessage(file.name, 'user');
+                appendMessage(data.medicine_info, 'bot'); // Assuming the bot returns info about the uploaded image
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function appendImageMessage(imageName, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(prescriptionImage.files[0]);
+            img.style.maxWidth = '80%'; // Set max width for the image
+            img.style.maxHeight = '200px'; // Set max height for the image
+            img.style.borderRadius = '15px'; // Add some style
+
+            messageDiv.innerHTML = `${sender === 'user' ? 'User: ' : 'Bot: '}Uploaded: ${imageName}`;
+            messageDiv.appendChild(img);
+            chatLog.appendChild(messageDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+ 
+    </script>
+</body>
+
+</html>

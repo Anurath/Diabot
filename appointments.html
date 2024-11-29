@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Book Appointment</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+   <style>
+      body {
+         font-family: 'Poppins', sans-serif;
+         background: linear-gradient(120deg, #84fab0, #8fd3f4);
+         color: #333;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         padding: 20px;
+         margin: 0;
+         min-height: 100vh;
+         animation: gradientShift 10s ease infinite;
+      }
+
+      @keyframes gradientShift {
+         0%, 100% { background: linear-gradient(120deg, #84fab0, #8fd3f4); }
+         50% { background: linear-gradient(120deg, #8fd3f4, #84fab0); }
+      }
+
+      #appointment_container {
+         max-width: 800px;
+         background: #ffffffd9;
+         border-radius: 10px;
+         padding: 20px;
+         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+         width: 100%;
+      }
+
+      #search_input {
+         width: 100%;
+         padding: 10px;
+         font-size: 16px;
+         border-radius: 5px;
+         border: 1px solid #ccc;
+         margin-bottom: 20px;
+         transition: border 0.3s;
+      }
+
+      #search_input:focus {
+         border-color: #007bff;
+         outline: none;
+      }
+
+      .hospital {
+         background-color: #f9f9f9;
+         margin-bottom: 15px;
+         border-radius: 8px;
+         padding: 15px;
+         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .hospital:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .hospital-name {
+         font-weight: 600;
+         font-size: 18px;
+         flex: 1;
+         color: #333;
+      }
+
+      .icon-container {
+         display: flex;
+         gap: 10px;
+         align-items: center;
+      }
+
+      .contact-btn, a {
+         text-decoration: none;
+         color: #007bff;
+         font-size: 18px;
+         transition: color 0.2s;
+      }
+
+      .contact-btn i, a i {
+         border: 2px solid #007bff;
+         border-radius: 50%;
+         padding: 5px;
+         font-size: 20px;
+         background: white;
+         transition: transform 0.2s, border-color 0.2s, color 0.2s;
+      }
+
+      .contact-btn:hover i, a:hover i {
+         transform: translateY(-3px);
+         color: #0056b3;
+         border-color: #0056b3;
+      }
+
+      .back-button {
+         position: fixed;
+         top: 15px;
+         left: 15px;
+         background: none;
+         border: none;
+         font-size: 24px;
+         color: #007bff;
+         cursor: pointer;
+         z-index: 1000;
+      }
+
+      .back-button:hover {
+         color: #0056b3;
+      }
+
+      @media (max-width: 768px) {
+         .hospital {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+         }
+
+         .hospital-name {
+            font-size: 16px;
+         }
+      }
+   </style>
+</head>
+<body>
+
+   <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <h5 class="modal-title">Appointment Confirmation</h5>
+            </div>
+            <div class="modal-body">
+               <p>Have you booked your appointment?</p>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-success">Yes</button>
+               <button type="button" class="btn btn-danger" data-bs-dismiss="modal">No</button>
+            </div>
+         </div>
+      </div>
+   </div>
+   
+    <button class="back-button" onclick="window.location.href='index.html'">
+        <strong>⬅️</strong>
+    </button>
+   <div id="appointment_container">
+      <input type="text" id="search_input" placeholder="Search for a hospital">
+      <div id="hospital_list"></div>
+   </div> 
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+   <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.10/dist/umd/solid.min.js"></script>
+
+   <script>
+      
+      // Load hospital data from JSON on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("./final_hospital_data.json")
+       
+            .then(response => response.json())
+            .then(data => displayHospitalData(data))
+            .catch(error => console.error('Error loading hospital data:', error));
+    });
+
+    function displayHospitalData(data) {
+    const hospitalContainer = document.getElementById('hospital_list'); // Element to display hospitals
+    data.hospitals.forEach(hospital => {
+        const hospitalDiv = document.createElement('div');
+        hospitalDiv.className = 'hospital';
+        hospitalDiv.innerHTML = `
+            <h3 class="hospital-name" data-phone="${hospital.phone}">${hospital.name}</h3>
+            <div class="icon-container">
+                <a href="tel:${hospital.phone}" class="contact-btn">
+                    <img src="./images/phone.png" alt="Phone" style="width: 28px; height: 28px;">
+                </a>
+                <a href="${hospital.location}" target="_blank" style="color: blue;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </a>
+            </div>
+        `;
+        hospitalContainer.appendChild(hospitalDiv);
+    });
+    setUpSearch();
+    setUpContactButtons();
+}
+
+    function setUpSearch() {
+         const searchInput = document.getElementById('search_input');
+         searchInput.addEventListener('keyup', function() {
+            const query = this.value.toLowerCase();
+            const hospitals = document.querySelectorAll('.hospital');
+            hospitals.forEach(hospital => {
+               const name = hospital.querySelector('.hospital-name').textContent.toLowerCase();
+               hospital.style.display = name.includes(query) ? '' : 'none';
+            });
+         });
+      }
+
+      function setUpContactButtons() {
+   const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+   document.querySelectorAll('.contact-btn').forEach(link => {
+      link.addEventListener('click', (e) => {
+         if (!isMobile) {
+            e.preventDefault();
+            alert("To access the calling feature on this website, use your phone!");
+         } else {
+            const phoneNumber = link.href; // Get the phone number from the link
+            window.location.href = phoneNumber; // Redirect to the phone's calling application
+            
+            // Show the confirmation dialog after initiating the call
+            // Show the custom confirmation dialog
+            setTimeout(() => {
+               showCustomDialog();
+            }, 1000); // Slight delay to ensure the call link is processed
+         }
+      });
+   });
+}
+// Custom dialog function
+function showCustomDialog() {
+   const dialog = document.createElement('div');
+   dialog.innerHTML = `
+      <div style="
+         position: fixed;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         background: white;
+         border-radius: 10px;
+         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+         padding: 20px;
+         z-index: 1000;
+         text-align: center;">
+         <p>Have you booked your appointment?</p>
+         <button id="dialog-yes" style="
+            margin: 5px;
+            padding: 10px 20px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;">Yes</button>
+         <button id="dialog-no" style="
+            margin: 5px;
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;">No</button>
+      </div>
+      <div style="
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: rgba(0, 0, 0, 0.4);
+         z-index: 999;">
+      </div>
+   `;
+   document.body.appendChild(dialog);
+
+   // Handle "Yes" and "No" button actions
+   document.getElementById('dialog-yes').addEventListener('click', () => {
+      window.location.href = 'index1.html'; // Redirect to index1.html
+   });
+   document.getElementById('dialog-no').addEventListener('click', () => {
+      document.body.removeChild(dialog); // Close the dialog
+   });
+}
+      // Additional functionality
+      document.getElementById("search_input").addEventListener("keypress", function(event) {
+         if (event.key === "Enter") {
+             event.preventDefault(); // Prevent form submission
+             fetchResponse(event.target.value); // Call your function
+         }
+         function showConfirmationModal() {
+   const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+   modal.show();
+}
+
+      }); 
+
+   </script>
+</body>
+</html>
